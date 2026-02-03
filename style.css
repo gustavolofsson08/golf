@@ -92,4 +92,67 @@ body {
     border-radius: 50%; /* Gör maten rund */
     position: absolute;
     box-shadow: 0 0 10px #e74c3c;
+
+}
+
+
+/* Grundinställningar för hela sidan */
+body {
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+#game-container {
+    text-align: center;
+}
+
+h1 {
+    color: #2ecc71;
+    letter-spacing: 5px;
+}
+
+/* Själva spelplanen */
+#game-board {
+    width: 400px;
+    height: 400px;
+    background-color: #000;
+    border: 4px solid #333;
+    position: relative; /* Gör att vi kan placera ormen inuti */
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+/* Design av ormens kropp */
+.snake-part {
+    width: 18px;
+    height: 18px;
+    background-color: #2ecc71;
+    border: 1px solid #1a1a1a;
+    position: absolute;
+}
+
+/* Design av ormens huvud */
+.head {
+    background-color: #27ae60;
+    border-radius: 2px;
+}
+
+/* Design av maten */
+.food {
+    width: 18px;
+    height: 18px;
+    background-color: #e74c3c;
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 0 8px #e74c3c;
+}
+
+.info {
+    margin-top: 15px;
+    font-size: 20px;
 }
