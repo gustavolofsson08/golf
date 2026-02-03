@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title>Snake Game - WASD & Pil</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,18 +12,14 @@
         <h1>SNAKE</h1>
         
         <div id="game-board">
-            <div class="snake-part head" style="top: 100px; left: 160px;"></div>
-            <div class="snake-part" style="top: 100px; left: 140px;"></div>
-            <div class="snake-part" style="top: 100px; left: 120px;"></div>
-            
-            <div class="food" style="top: 240px; left: 240px;"></div>
-        </div>
+            </div>
 
         <div class="info">
-            <p>Poäng: 10</p>
+            <p>Poäng: <span id="score">0</span></p>
+            <p style="font-size: 12px; color: #666;">Styr med Pilar eller WASD</p>
         </div>
     </div>
-<script src="script.js"></script>
-</body>
+
+    <script src="script.js"></script>
 </body>
 </html>
