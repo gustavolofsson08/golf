@@ -156,3 +156,61 @@ h1 {
     margin-top: 15px;
     font-size: 20px;
 }
+
+
+body {
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+#game-container {
+    text-align: center;
+}
+
+h1 {
+    color: #2ecc71;
+    letter-spacing: 5px;
+}
+
+#game-board {
+    width: 400px;
+    height: 400px;
+    background-color: #000;
+    border: 4px solid #333;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.snake-part {
+    width: 18px;
+    height: 18px;
+    background-color: #2ecc71;
+    border: 1px solid #1a1a1a;
+    position: absolute;
+}
+
+.head {
+    background-color: #27ae60;
+    border-radius: 2px;
+    z-index: 10;
+}
+
+.food {
+    width: 18px;
+    height: 18px;
+    background-color: #e74c3c;
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 0 8px #e74c3c;
+}
+
+.info {
+    margin-top: 15px;
+    font-size: 20px;
+}
