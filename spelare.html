@@ -24,7 +24,7 @@
         <section class="tab-content active">
             <div class="page-header">
                 <h2>👥 Spelare</h2>
-                <p>Lägg till spelare med namn, Golf-ID (ÅÅMMDD-XXX) och handicap.</p>
+                <p>Lägg till spelare med namn, Golf-ID och aktuellt handicap.</p>
             </div>
 
             <div class="add-player-section">
@@ -32,24 +32,27 @@
                 <form id="add-player-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="player-name">Namn:</label>
-                            <input type="text" id="player-name" required>
+                            <label for="player-name">👤 Namn:</label>
+                            <input type="text" id="player-name" placeholder="t.ex. Anna Andersson" required>
                         </div>
                         <div class="form-group">
-                            <label for="player-golfid">Golf-ID:</label>
+                            <label for="player-golfid">🆔 Golf-ID:</label>
                             <input type="text" id="player-golfid" placeholder="ÅÅMMDD-XXX" pattern="\d{6}-\d{3}">
                         </div>
                         <div class="form-group">
-                            <label for="player-hcp">Handicap:</label>
-                            <input type="number" id="player-hcp" step="0.1" min="0" max="54" required>
+                            <label for="player-hcp">🎯 Handicap:</label>
+                            <input type="number" id="player-hcp" step="0.1" min="0" max="54" placeholder="18.5" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">➕ Lägg till</button>
+                    <button type="submit" class="btn btn-primary">➕ Lägg till spelare</button>
                 </form>
             </div>
 
             <div class="players-section">
-                <h3>Registrerade spelare</h3>
+                <div class="section-header">
+                    <h3>Registrerade spelare</h3>
+                    <span id="player-count" class="count-badge">0 spelare</span>
+                </div>
                 <div id="players-list" class="players-grid"></div>
             </div>
         </section>
