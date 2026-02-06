@@ -1,166 +1,112 @@
-// Data storage
-let players = [];
-let rounds = [];
-let matches = [];
+/** * GOLF STATS TRACKER - MOTOR
+ * Hanterar: Lagring, Spelare och WHS-Handicap
+ */
 
-// Load data from localStorage on page load
+// 1. DATA-LAGRING (Hämtar från webbläsarens minne)
+let players = JSON.parse(localStorage.getItem('golfPlayers')) || [];
+let rounds = JSON.parse(localStorage.getItem('golfRounds')) || [];
+let matches = JSON.parse(localStorage.getItem('golfMatches')) || [];
+
+// 2. STARTA SIDAN
 document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    initializeCurrentPage();
+    // Koppla ihop knappar med funktioner
+    const playerForm = document.getElementById('add-player-form');
+    if (playerForm) {
+        playerForm.addEventListener('submit', handleAddPlayer);
+    }
+
+    // Rita ut listan om vi är på spelarsidan
+    updateDisplay();
 });
 
-// Initialize logic based on which page we are on
-function initializeCurrentPage() {
-    // 1. Hantera formulär (bara om de finns på sidan)
-    const playerForm = document.getElementById('add-player-form');
-    if (playerForm) playerForm.addEventListener('submit', addPlayer);
-    
-    const roundForm = document.getElementById('add-round-form');
-    if (roundForm) roundForm.addEventListener('submit', addRound);
-    
-    const matchForm = document.getElementById('add-match-form');
-    if (matchForm) matchForm.addEventListener('submit', addMatch);
-
-    // 2. Uppdatera listor och dropdowns (bara om elementen finns)
-    displayPlayers();
-    displayRounds();
-    displayMatches();
-    updatePlayerSelects();
-    updateStatistics();
-}
-
-// Load data from localStorage
-function loadData() {
-    const savedPlayers = localStorage.getItem('golfPlayers');
-    const savedRounds = localStorage.getItem('golfRounds');
-    const savedMatches = localStorage.getItem('golfMatches');
-
-    if (savedPlayers) players = JSON.parse(savedPlayers);
-    if (savedRounds) rounds = JSON.parse(savedRounds);
-    if (savedMatches) matches = JSON.parse(savedMatches);
-}
-
-// Save data to localStorage
+// 3. SPARA DATA FUNKTION
 function saveData() {
     localStorage.setItem('golfPlayers', JSON.stringify(players));
     localStorage.setItem('golfRounds', JSON.stringify(rounds));
     localStorage.setItem('golfMatches', JSON.stringify(matches));
 }
 
-// --- SPELARHANTERING MED GOLF-ID ---
-function addPlayer(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('player-name').value.trim();
-    const hcp = parseFloat(document.getElementById('player-hcp').value);
-    
-    // Hämta Golf-ID om fältet finns, annars tom sträng
-    const golfIdInput = document.getElementById('player-golfid');
-    const golfId = golfIdInput ? golfIdInput.value.trim() : "";
+// 4. LÄGG TILL SPELARE
+function handleAddPlayer(e) {
+    e.preventDefault(); // Stoppar sidan från att laddas om direkt
 
-    // Validera Golf-ID om det är ifyllt (Format: ÅÅMMDD-XXX)
-    if (golfId && !/^\d{6}-\d{3}$/.test(golfId)) {
-        alert('Golf-ID måste vara i formatet ÅÅMMDD-XXX');
-        return;
-    }
+    const nameInput = document.getElementById('player-name');
+    const hcpInput = document.getElementById('player-hcp');
+    const idInput = document.getElementById('player-golfid');
 
-    if (!name || isNaN(hcp)) {
-        alert('Vänligen fyll i namn och handicap.');
-        return;
-    }
-
-    const player = {
-        id: Date.now(),
-        name: name,
-        golfId: golfId,
-        handicap: hcp,
-        startHandicap: hcp // Bra att spara vad man började på
+    const newPlayer = {
+        id: Date.now(), // Skapar ett unikt ID
+        name: nameInput.value.trim(),
+        handicap: parseFloat(hcpInput.value),
+        golfId: idInput.value.trim() || "Saknas",
+        initialHcp: parseFloat(hcpInput.value)
     };
 
-    players.push(player);
+    // Spara i listan
+    players.push(newPlayer);
     saveData();
-    displayPlayers(); // Uppdatera listan direkt
-    updatePlayerSelects();
     
+    // Rensa formuläret
     e.target.reset();
-    showNotification('Spelare tillagd!');
+    
+    // Uppdatera listan på skärmen
+    updateDisplay();
+    
+    // Visa ett litet meddelande
+    showNotification(`Spelaren ${newPlayer.name} har lagts till!`);
 }
 
-// --- RUNDHANTERING MED WHS (HCP-BERÄKNING) ---
-function addRound(e) {
-    e.preventDefault();
-    
-    const playerId = parseInt(document.getElementById('round-player').value);
-    const grossScore = parseInt(document.getElementById('round-score').value);
-    const date = document.getElementById('round-date').value;
-    const course = document.getElementById('round-course').value.trim();
-    
-    // Hämta Slope och CR om fälten finns, annars standardvärden
-    const slopeInput = document.getElementById('round-slope');
-    const crInput = document.getElementById('round-cr');
-    const slope = slopeInput && slopeInput.value ? parseInt(slopeInput.value) : 113;
-    const cr = crInput && crInput.value ? parseFloat(crInput.value) : 72.0;
+// 5. RITA UT SPELARE PÅ SIDAN
+function updateDisplay() {
+    const listContainer = document.getElementById('players-list');
+    const countBadge = document.getElementById('player-count');
 
-    if (!playerId || isNaN(grossScore) || !date || !course) {
-        alert('Vänligen fyll i alla obligatoriska fält.');
+    if (!listContainer) return; // Vi är inte på spelarsidan
+
+    if (countBadge) {
+        countBadge.textContent = `${players.length} spelare`;
+    }
+
+    if (players.length === 0) {
+        listContainer.innerHTML = '<p class="empty-message">Inga spelare registrerade. Lägg till din första ovan!</p>';
         return;
     }
 
-    const player = players.find(p => p.id === playerId);
-    if (!player) return;
-
-    // Beräkna Score Differential för WHS: (Score - CR) * (113 / Slope)
-    const scoreDiff = (grossScore - cr) * (113 / slope);
-
-    const round = {
-        id: Date.now(),
-        playerId: playerId,
-        playerName: player.name,
-        score: grossScore,
-        slope: slope,
-        cr: cr,
-        scoreDifferential: scoreDiff,
-        handicapAtRound: player.handicap,
-        netScore: grossScore - player.handicap,
-        date: date,
-        course: course
-    };
-
-    rounds.push(round);
-    
-    // Uppdatera spelarens handicap enligt WHS-regler
-    updatePlayerWHS(playerId);
-
-    saveData();
-    displayRounds();
-    
-    e.target.reset();
-    showNotification('Runda registrerad & HCP uppdaterat!');
+    // Skapa HTML för varje spelare
+    listContainer.innerHTML = players.map(p => `
+        <div class="player-card" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h4 style="margin: 0; color: #2c3e50;">${p.name}</h4>
+            <div style="display: flex; gap: 15px; margin: 10px 0; font-size: 0.9em; color: #666;">
+                <span><strong>HCP:</strong> ${p.handicap.toFixed(1)}</span>
+                <span><strong>ID:</strong> ${p.golfId}</span>
+            </div>
+            <button onclick="deletePlayer(${p.id})" class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8em; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">Ta bort</button>
+        </div>
+    `).join('');
 }
 
-// --- WHS HANDICAP LOGIK ---
-function updatePlayerWHS(playerId) {
-    const player = players.find(p => p.id === playerId);
-    
-    // Hämta spelarens alla rundor och sortera (senaste först)
-    const playerRounds = rounds.filter(r => r.playerId === playerId);
-    playerRounds.sort((a, b) => new Date(b.date) - new Date(a.date));
+// 6. TA BORT SPELARE
+function deletePlayer(id) {
+    if (confirm("Vill du verkligen ta bort denna spelare?")) {
+        players = players.filter(p => p.id !== id);
+        saveData();
+        updateDisplay();
+    }
+}
 
-    // WHS baseras på de senaste 20 rundorna
-    const last20 = playerRounds.slice(0, 20);
-    const n = last20.length;
-
-    if (n === 0) return;
-
-    let newHcp = player.handicap;
-    
-    // Sortera de senaste 20 rundorna baserat på lägst Score Differential (bäst först)
-    const sortedDiffs = last20.map(r => r.scoreDifferential).sort((a, b) => a - b);
-
-    // WHS Beräkningstabell
-    if (n >= 20) {
-        // Snitt av de 8 bästa
-        const best8 = sortedDiffs.slice(0, 8);
-        newHcp = best8.reduce((a, b) => a + b, 0) / 8;
-    } else {
-        // Färre än 20 rundor (S
+// 7. NOTIFIERING (DEN GRÖNA RUTAN)
+function showNotification(msg) {
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: #2ecc71; color: white; padding: 15px 25px;
+        border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000; transition: opacity 0.5s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
