@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Stats Tracker - Rundor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⛳ Golf Stats Tracker</h1>
+            <p>Registrera dina spelade rundor</p>
+        </header>
+
+        <nav class="tabs">
+            <a href="index.html" class="tab-btn">Hem</a>
+            <a href="spelare.html" class="tab-btn">Spelare</a>
+            <a href="rundor.html" class="tab-btn active">Rundor</a>
+            <a href="matchspel.html" class="tab-btn">Matchspel</a>
+            <a href="statistik.html" class="tab-btn">Statistik</a>
+        </nav>
+
+        <section class="tab-content active">
+            <div class="page-header">
+                <h2>📝 Registrera Runda</h2>
+                <p>Fyll i banans uppgifter och din brutto-score (totala slag).</p>
+            </div>
+
+            <div class="add-round-section">
+                <form id="add-round-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="round-player">Välj spelare:</label>
+                            <select id="round-player" required>
+                                <option value="">Laddar spelare...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="round-course">Bana:</label>
+                            <input type="text" id="round-course" placeholder="t.ex. Kungsbacka GK" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="round-date">Datum:</label>
+                            <input type="date" id="round-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="round-score">Antal slag (Brutto):</label>
+                            <input type="number" id="round-score" placeholder="t.ex. 85" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="background: #f1f2f6; padding: 10px; border-radius: 5px;">
+                        <div class="form-group">
+                            <label for="round-cr">Course Rating (CR):</label>
+                            <input type="number" id="round-cr" step="0.1" placeholder="t.ex. 71.2" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="round-slope">Slope Rating:</label>
+                            <input type="number" id="round-slope" placeholder="t.ex. 128" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="margin-top: 15px;">💾 Spara runda</button>
+                </form>
+            </div>
+
+            <div class="rounds-section">
+                <h3>Senaste rundorna</h3>
+                <div id="rounds-list"></div>
+            </div>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
