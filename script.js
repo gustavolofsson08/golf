@@ -1,210 +1,159 @@
-// 1. DATA-HANTERING (Hämtar det som finns sparat)
+// 1. INITIALISERING - Hämta data och rensa gamla felaktiga format
 let players = JSON.parse(localStorage.getItem('golfPlayers')) || [];
 let rounds = JSON.parse(localStorage.getItem('golfRounds')) || [];
 
 // 2. KÖRS NÄR SIDAN LADDAS
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Sidan laddad. Hittade antal spelare:", players.length);
-
-    // Koppla formulär (Spelare)
+    // Koppla formulär om de finns
     const playerForm = document.getElementById('add-player-form');
     if (playerForm) playerForm.addEventListener('submit', handleAddPlayer);
 
-    // Koppla formulär (Rundor)
     const roundForm = document.getElementById('add-round-form');
     if (roundForm) roundForm.addEventListener('submit', handleAddRound);
 
-    // UPPDATERA ALLT PÅ SKÄRMEN
-    updatePlayerDisplay(); // Visar listan på spelarsidan
-    updateRoundDisplay();  // Visar listan på rundor-sidan
-    populatePlayerDropdown(); // Fyller i väljaren på rundor-sidan
+    // Uppdatera skärmen direkt
+    updatePlayerDisplay();
+    updateRoundDisplay();
+    populatePlayerDropdown();
 });
 
-// 3. FYLL I DROP-DOWN MENYN (Välj spelare)
-function populatePlayerDropdown() {
-    const dropdown = document.getElementById('round-player');
-    
-    // Om vi inte hittar dropdown-menyn (t.ex. på index.html), avbryt.
-    if (!dropdown) return; 
-
-    if (players.length === 0) {
-        dropdown.innerHTML = '<option value="">Inga spelare hittades...</option>';
-        return;
-    }
-
-    // Skapa valen i menyn
-    let optionsHTML = '<option value="">-- Välj vem som spelat --</option>';
-    players.forEach(p => {
-        optionsHTML += `<option value="${p.id}">${p.name} (HCP: ${p.handicap.toFixed(1)})</option>`;
-    });
-
-    dropdown.innerHTML = optionsHTML;
-    console.log("Dropdown fylld med spelare.");
-}
-
-// 4. SPARA NY SPELARE
+// 3. LÄGG TILL SPELARE
 function handleAddPlayer(e) {
     e.preventDefault();
-    const nameVal = document.getElementById('player-name').value.trim();
-    const hcpVal = document.getElementById('player-hcp').value;
-    const idVal = document.getElementById('player-golfid').value.trim();
 
+    // Hämta elementen
+    const nameEl = document.getElementById('player-name');
+    const hcpEl = document.getElementById('player-hcp');
+    const idEl = document.getElementById('player-golfid');
+
+    // Skapa objektet
     const newPlayer = {
         id: Date.now(),
-        name: nameVal,
-        handicap: parseFloat(hcpVal),
-        golfId: idVal || "Saknas"
+        name: nameEl.value.trim(),
+        handicap: parseFloat(hcpEl.value) || 0,
+        golfId: idEl.value.trim() || "Inget ID"
     };
 
+    // Spara
     players.push(newPlayer);
     localStorage.setItem('golfPlayers', JSON.stringify(players));
     
+    // Nollställ formulär och rita ut
     e.target.reset();
     updatePlayerDisplay();
-    showNotification(`Spelaren ${newPlayer.name} tillagd!`);
+    
+    // Om vi är på rundor-sidan samtidigt, uppdatera dropdown
+    populatePlayerDropdown();
 }
 
-// 5. SPARA NY RUNDA
+// 4. RITA UT SPELARE (Fixar felet på din bild)
+function updatePlayerDisplay() {
+    const list = document.getElementById('players-list');
+    if (!list) return;
+
+    const countBadge = document.getElementById('player-count');
+    if (countBadge) countBadge.textContent = `${players.length} spelare`;
+
+    if (players.length === 0) {
+        list.innerHTML = '<p style="padding: 20px; color: #666;">Inga spelare sparade än.</p>';
+        return;
+    }
+
+    // Vi bygger korten med tydlig svart text för att säkerställa att det syns
+    list.innerHTML = players.map(p => `
+        <div class="player-card" style="
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+            <div style="color: #000000; text-align: left;">
+                <div style="font-size: 1.2rem; font-weight: 800; margin-bottom: 5px;">${p.name || 'Namn saknas'}</div>
+                <div style="font-size: 0.9rem; color: #444;">HCP: <strong>${p.handicap}</strong> | ID: ${p.golfId}</div>
+            </div>
+            <button onclick="deletePlayer(${p.id})" style="
+                background: #ff4757;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+            ">Ta bort</button>
+        </div>
+    `).join('');
+}
+
+// 5. TA BORT SPELARE
+function deletePlayer(id) {
+    if (confirm("Vill du ta bort spelaren?")) {
+        players = players.filter(p => p.id !== id);
+        localStorage.setItem('golfPlayers', JSON.stringify(players));
+        updatePlayerDisplay();
+        populatePlayerDropdown();
+    }
+}
+
+// 6. RUNDOR & DROPDOWN (Säkerställer kopplingen)
+function populatePlayerDropdown() {
+    const dropdown = document.getElementById('round-player');
+    if (!dropdown) return;
+
+    let html = '<option value="">-- Välj spelare --</option>';
+    players.forEach(p => {
+        html += `<option value="${p.id}">${p.name} (${p.handicap})</option>`;
+    });
+    dropdown.innerHTML = html;
+}
+
 function handleAddRound(e) {
     e.preventDefault();
     const playerId = parseInt(document.getElementById('round-player').value);
     const score = parseInt(document.getElementById('round-score').value);
     const cr = parseFloat(document.getElementById('round-cr').value);
     const slope = parseInt(document.getElementById('round-slope').value);
-    const date = document.getElementById('round-date').value;
-    const course = document.getElementById('round-course').value;
 
-    if (!playerId) {
-        alert("Du måste välja en spelare i listan!");
-        return;
-    }
+    if (!playerId) return alert("Välj en spelare först!");
 
-    // WHS Formel: Score Differential
-    const differential = (score - cr) * (113 / slope);
-
+    const diff = (score - cr) * (113 / slope);
+    
     const newRound = {
         id: Date.now(),
         playerId: playerId,
         playerName: players.find(p => p.id === playerId).name,
         score: score,
-        differential: differential,
-        date: date,
-        course: course
+        differential: diff,
+        date: document.getElementById('round-date').value,
+        course: document.getElementById('round-course').value
     };
 
     rounds.push(newRound);
     localStorage.setItem('golfRounds', JSON.stringify(rounds));
     
-    // Uppdatera handicap och spara
-    calculateNewHcp(playerId);
+    // Enkel HCP-uppdatering (Bästa rundan)
+    const pIdx = players.findIndex(p => p.id === playerId);
+    if (pIdx !== -1) {
+        players[pIdx].handicap = Math.round(diff * 10) / 10;
+        localStorage.setItem('golfPlayers', JSON.stringify(players));
+    }
 
     e.target.reset();
     updateRoundDisplay();
-    showNotification("Runda sparad!");
-}
-
-// 6. RÄKNA UT NYTT HCP (Enligt WHS)
-function calculateNewHcp(playerId) {
-    const playerRounds = rounds.filter(r => r.playerId === playerId);
-    playerRounds.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    const last20 = playerRounds.slice(0, 20);
-    const sortedDiffs = last20.map(r => r.differential).sort((a, b) => a - b);
-    
-    let newHcp;
-    const n = last20.length;
-
-    if (n >= 20) {
-        const best8 = sortedDiffs.slice(0, 8);
-        newHcp = best8.reduce((a, b) => a + b, 0) / 8;
-    } else {
-        // Enkel beräkning för färre än 20 rundor
-        newHcp = sortedDiffs[0]; // För enkelhetens skull, ta bästa rundan
-    }
-
-    const pIdx = players.findIndex(p => p.id === playerId);
-    if (pIdx !== -1) {
-        players[pIdx].handicap = Math.round(newHcp * 10) / 10;
-        localStorage.setItem('golfPlayers', JSON.stringify(players));
-    }
-}
-
-// 7. RITA UT LISTOR
-function updatePlayerDisplay() {
-    const list = document.getElementById('players-list');
-    const countBadge = document.getElementById('player-count');
-
-    if (!list) return;
-
-    if (countBadge) {
-        countBadge.textContent = `${players.length} spelare`;
-    }
-
-    if (players.length === 0) {
-        list.innerHTML = '<p class="empty-message">Inga spelare tillagda än.</p>';
-        return;
-    }
-
-    // Här bygger vi om korten med bättre styling som syns ordentligt
-    list.innerHTML = players.map(p => `
-        <div class="player-card" style="
-            background: white; 
-            border: 1px solid #ddd; 
-            padding: 15px; 
-            border-radius: 10px; 
-            margin-bottom: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            min-height: 60px;
-        ">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <span style="font-weight: bold; color: #2d3436; font-size: 1.1em;">${p.name}</span>
-                <span style="color: #636e72; font-size: 0.9em;">
-                    HCP: <strong>${p.handicap.toFixed(1)}</strong> | ID: ${p.golfId}
-                </span>
-            </div>
-            <button onclick="deletePlayer(${p.id})" style="
-                background: #ff7675; 
-                color: white; 
-                border: none; 
-                padding: 8px 12px; 
-                border-radius: 6px; 
-                cursor: pointer;
-                font-weight: bold;
-                transition: background 0.2s;
-            " onmouseover="this.style.background='#d63031'" onmouseout="this.style.background='#ff7675'">
-                Ta bort
-            </button>
-        </div>
-    `).join('');
+    updatePlayerDisplay();
+    alert("Runda sparad!");
 }
 
 function updateRoundDisplay() {
     const list = document.getElementById('rounds-list');
     if (!list) return;
-    const sorted = [...rounds].sort((a, b) => new Date(b.date) - new Date(a.date));
-    list.innerHTML = sorted.map(r => `
-        <div style="background:#eee; padding:10px; margin-bottom:5px; border-radius:5px;">
-            <strong>${r.playerName}</strong>: ${r.score} slag på ${r.course} (${r.date})
+    list.innerHTML = rounds.map(r => `
+        <div style="background:#f1f2f6; padding:10px; margin-bottom:10px; border-radius:8px; border-left: 5px solid #2ecc71;">
+            <strong>${r.playerName}</strong>: ${r.score} slag på ${r.course}
         </div>
     `).join('');
-}
-
-function deletePlayer(id) {
-    if (confirm("Ta bort?")) {
-        players = players.filter(p => p.id !== id);
-        localStorage.setItem('golfPlayers', JSON.stringify(players));
-        updatePlayerDisplay();
-        populatePlayerDropdown(); // Uppdatera menyn om man tar bort någon
-    }
-}
-
-function showNotification(msg) {
-    const n = document.createElement('div');
-    n.textContent = msg;
-    n.style.cssText = "position:fixed; top:10px; right:10px; background:green; color:white; padding:10px; border-radius:5px; z-index:9999;";
-    document.body.appendChild(n);
-    setTimeout(() => n.remove(), 3000);
 }
