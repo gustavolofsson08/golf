@@ -3,43 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Stats Tracker - Spelare</title>
+    <title>Golf Stats Tracker - Hem</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>⛳ Golf Stats Tracker</h1>
-            <p>Hantera dina spelare</p>
+            <p>Välkommen till din golf-dashboard</p>
         </header>
 
         <nav class="tabs">
-            <a href="index.html" class="tab-btn">Hem</a>
-            <a href="spelare.html" class="tab-btn active">Spelare</a>
+            <a href="index.html" class="tab-btn active">Hem</a>
+            <a href="spelare.html" class="tab-btn">Spelare</a>
             <a href="rundor.html" class="tab-btn">Rundor</a>
             <a href="matchspel.html" class="tab-btn">Matchspel</a>
             <a href="statistik.html" class="tab-btn">Statistik</a>
         </nav>
 
         <section class="tab-content active">
-            <h2>Lägg till spelare</h2>
-            <form id="add-player-form">
-                <div class="form-group">
-                    <label for="player-name">Namn:</label>
-                    <input type="text" id="player-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="player-hcp">Handicap:</label>
-                    <input type="number" id="player-hcp" step="0.1" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Lägg till spelare</button>
-            </form>
-
-            <h3>Registrerade spelare</h3>
-            <div id="players-list" class="players-grid"></div>
-        </section>
+            <div class="page-header">
+                <h2>Välkommen!</h2>
+                <p>Använd menyn ovan för att navigera. Börja med att lägga till spelare under fliken "Spelare".</p>
+            </div>
+            </section>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
