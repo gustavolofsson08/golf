@@ -540,3 +540,193 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// --- I script.js ---
+
+// 1. Uppdatera addPlayer för att hantera Golf-ID
+function addPlayer(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('player-name').value.trim();
+    const golfId = document.getElementById('player-golfid').value.trim();
+    const hcp = parseFloat(document.getElementById('player-hcp').value);
+
+    // Enkel regex-validering för svenskt Golf-ID
+    const golfIdPattern = /^\d{6}-\d{3}$/;
+    if (!golfIdPattern.test(golfId)) {
+        alert('Golf-ID måste vara i formatet ÅÅMMDD-XXX');
+        return;
+    }
+
+    if (!name || isNaN(hcp)) {
+        alert('Vänligen fyll i alla fält korrekt.');
+        return;
+    }
+
+    const player = {
+        id: Date.now(),
+        name: name,
+        golfId: golfId, // Nytt fält
+        handicap: hcp,
+        exactHandicap: hcp // Vi sparar det exakta värdet också
+    };
+
+    players.push(player);
+    saveData();
+    updateAllDisplays();
+    
+    e.target.reset();
+    showNotification('Spelare tillagd!');
+}
+
+// 2. Vi måste uppdatera addRound för att räkna ut WHS
+// OBS: För att detta ska fungera måste vi senare lägga till fält för 
+// 'Course Rating' (CR) och 'Slope' i rundor.html. 
+// Jag har lagt till logiken här, men den förutsätter att vi skickar in de värdena.
+
+function addRound(e) {
+    e.preventDefault();
+    
+    const playerId = parseInt(document.getElementById('round-player').value);
+    const grossScore = parseInt(document.getElementById('round-score').value);
+    const date = document.getElementById('round-date').value;
+    const course = document.getElementById('round-course').value.trim();
+    
+    // Nya värden som vi behöver hämta från formuläret (vi fixar input-fälten i nästa steg)
+    // Om de inte finns i formuläret än sätter vi standardvärden (Par 72, Slope 113)
+    const slopeInput = document.getElementById('round-slope');
+    const crInput = document.getElementById('round-cr');
+    
+    const slope = slopeInput ? parseInt(slopeInput.value) : 113; 
+    const cr = crInput ? parseFloat(crInput.value) : 72.0;
+
+    if (!playerId || isNaN(grossScore) || !date || !course) {
+        alert('Vänligen fyll i alla fält korrekt.');
+        return;
+    }
+
+    const player = players.find(p => p.id === playerId);
+    
+    // WHS BERÄKNING: Score Differential
+    // (Score - CR) * (113 / Slope)
+    const scoreDiff = (grossScore - cr) * (113 / slope);
+
+    const round = {
+        id: Date.now(),
+        playerId: playerId,
+        playerName: player.name,
+        score: grossScore,
+        slope: slope,
+        cr: cr,
+        scoreDifferential: scoreDiff, // Sparar differentialen för HCP-beräkning
+        handicapAtRound: player.handicap,
+        netScore: grossScore - player.handicap,
+        date: date,
+        course: course
+    };
+
+    rounds.push(round);
+    
+    // Uppdatera spelarens handicap automatiskt
+    updatePlayerWHS(playerId);
+
+    saveData();
+    updateAllDisplays();
+    
+    e.target.reset();
+    showNotification('Runda registrerad och HCP uppdaterat!');
+}
+
+// 3. NY FUNKTION: Räkna ut HCP enligt Svenska Golfförbundet (WHS)
+function updatePlayerWHS(playerId) {
+    const player = players.find(p => p.id === playerId);
+    
+    // Hämta spelarens alla rundor
+    const playerRounds = rounds.filter(r => r.playerId === playerId);
+    
+    // Sortera så vi har de senaste först
+    playerRounds.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // WHS baseras på de 20 senaste rundorna
+    const last20 = playerRounds.slice(0, 20);
+    const n = last20.length;
+
+    if (n === 0) return; // Inga rundor, gör inget
+
+    let newHcp = player.handicap;
+    
+    // Sortera rundorna baserat på lägst Score Differential
+    const sortedDiffs = last20.map(r => r.scoreDifferential).sort((a, b) => a - b);
+
+    // WHS Tabell för färre än 20 rundor
+    if (n >= 20) {
+        // Snitt av de 8 bästa
+        const best8 = sortedDiffs.slice(0, 8);
+        const sum = best8.reduce((a, b) => a + b, 0);
+        newHcp = sum / 8;
+    } else {
+        // Hantering av färre rundor (enligt WHS tabell)
+        switch(n) {
+            case 1: newHcp = sortedDiffs[0] - 2.0; break;
+            case 2: newHcp = sortedDiffs[0] - 2.0; break;
+            case 3: newHcp = sortedDiffs[0] - 2.0; break;
+            case 4: newHcp = sortedDiffs[0] - 1.0; break;
+            case 5: newHcp = sortedDiffs[0]; break;
+            case 6: // Snitt av bästa 2 - 1.0
+                newHcp = ((sortedDiffs[0] + sortedDiffs[1]) / 2) - 1.0; break;
+            case 7: // Snitt av bästa 2
+            case 8:
+                newHcp = (sortedDiffs[0] + sortedDiffs[1]) / 2; break;
+            case 9: // Snitt av bästa 3
+            case 10:
+            case 11:
+                newHcp = sortedDiffs.slice(0, 3).reduce((a, b) => a + b, 0) / 3; break;
+            case 12: // Snitt av bästa 4
+            case 13:
+            case 14:
+                newHcp = sortedDiffs.slice(0, 4).reduce((a, b) => a + b, 0) / 4; break;
+            case 15: // Snitt av bästa 5
+            case 16:
+                newHcp = sortedDiffs.slice(0, 5).reduce((a, b) => a + b, 0) / 5; break;
+            case 17: // Snitt av bästa 6
+            case 18:
+                newHcp = sortedDiffs.slice(0, 6).reduce((a, b) => a + b, 0) / 6; break;
+            case 19: // Snitt av bästa 7
+                newHcp = sortedDiffs.slice(0, 7).reduce((a, b) => a + b, 0) / 7; break;
+        }
+    }
+
+    // Avrunda till en decimal (WHS-regel)
+    newHcp = Math.round(newHcp * 10) / 10;
+
+    // Max HCP är 54
+    if (newHcp > 54) newHcp = 54;
+    
+    // Uppdatera spelaren
+    player.handicap = newHcp;
+}
+
+// Uppdatera också displayPlayers för att visa Golf-ID om du vill
+function displayPlayers() {
+    const container = document.getElementById('players-list');
+    if (!container) return;
+    
+    const countBadge = document.getElementById('player-count');
+    if (countBadge) {
+        countBadge.textContent = `${players.length} ${players.length === 1 ? 'spelare' : 'spelare'}`;
+    }
+    
+    if (players.length === 0) {
+        container.innerHTML = '<div class="empty-message">Inga spelare registrerade ännu. Lägg till din första spelare ovan!</div>';
+        return;
+    }
+
+    container.innerHTML = players.map(player => `
+        <div class="player-card">
+            <h4>${player.name}</h4>
+            <p><strong>HCP:</strong> ${player.handicap.toFixed(1)}</p>
+            <p style="font-size: 0.9em; opacity: 0.8;">ID: ${player.golfId || '-'}</p>
+            <button class="btn btn-danger" onclick="deletePlayer(${player.id})">Ta bort</button>
+        </div>
+    `).join('');
+}
