@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Stats Tracker</title>
+    <title>Golf Stats Tracker - Spelare</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>⛳ Golf Stats Tracker</h1>
-            <p>Håll koll på dina golfrundor och tävlingar</p>
+            <p>Hantera dina spelare</p>
         </header>
 
         <nav class="tabs">
-            <button class="tab-btn active" data-tab="players">Spelare</button>
-            <button class="tab-btn" data-tab="rounds">Rundor</button>
-            <button class="tab-btn" data-tab="matches">Matchspel</button>
-            <button class="tab-btn" data-tab="stats">Statistik</button>
+            <a href="index.html" class="tab-btn">Hem</a>
+            <a href="spelare.html" class="tab-btn active">Spelare</a>
+            <a href="rundor.html" class="tab-btn">Rundor</a>
+            <a href="matchspel.html" class="tab-btn">Matchspel</a>
+            <a href="statistik.html" class="tab-btn">Statistik</a>
         </nav>
 
-        <!-- Spelare Tab -->
-        <section id="players-tab" class="tab-content active">
+        <section class="tab-content active">
             <h2>Lägg till spelare</h2>
             <form id="add-player-form">
                 <div class="form-group">
@@ -37,97 +37,6 @@
 
             <h3>Registrerade spelare</h3>
             <div id="players-list" class="players-grid"></div>
-        </section>
-
-        <!-- Rundor Tab -->
-        <section id="rounds-tab" class="tab-content">
-            <h2>Registrera runda</h2>
-            <form id="add-round-form">
-                <div class="form-group">
-                    <label for="round-player">Spelare:</label>
-                    <select id="round-player" required>
-                        <option value="">Välj spelare...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="round-score">Score:</label>
-                    <input type="number" id="round-score" required>
-                </div>
-                <div class="form-group">
-                    <label for="round-date">Datum:</label>
-                    <input type="date" id="round-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="round-course">Bana:</label>
-                    <input type="text" id="round-course" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Registrera runda</button>
-            </form>
-
-            <h3>Senaste rundor</h3>
-            <div id="rounds-list" class="rounds-list"></div>
-        </section>
-
-        <!-- Matchspel Tab -->
-        <section id="matches-tab" class="tab-content">
-            <h2>Registrera matchspel</h2>
-            <form id="add-match-form">
-                <div class="form-group">
-                    <label for="match-player1">Spelare 1:</label>
-                    <select id="match-player1" required>
-                        <option value="">Välj spelare...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="match-score1">Score Spelare 1:</label>
-                    <input type="number" id="match-score1" required>
-                </div>
-                <div class="form-group">
-                    <label for="match-player2">Spelare 2:</label>
-                    <select id="match-player2" required>
-                        <option value="">Välj spelare...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="match-score2">Score Spelare 2:</label>
-                    <input type="number" id="match-score2" required>
-                </div>
-                <div class="form-group">
-                    <label for="match-date">Datum:</label>
-                    <input type="date" id="match-date" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Registrera matchspel</button>
-            </form>
-
-            <h3>Matchhistorik</h3>
-            <div id="matches-list" class="matches-list"></div>
-        </section>
-
-        <!-- Statistik Tab -->
-        <section id="stats-tab" class="tab-content">
-            <h2>Statistik & Ranking</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>🏆 Bästa spelare (utan HCP)</h3>
-                    <div id="best-raw-score" class="ranking-list"></div>
-                </div>
-
-                <div class="stat-card">
-                    <h3>⭐ Bästa spelare (med HCP)</h3>
-                    <div id="best-net-score" class="ranking-list"></div>
-                </div>
-
-                <div class="stat-card">
-                    <h3>🎯 Matchspel Ranking</h3>
-                    <div id="match-ranking" class="ranking-list"></div>
-                </div>
-
-                <div class="stat-card">
-                    <h3>📊 Genomsnittsscore</h3>
-                    <div id="average-scores" class="ranking-list"></div>
-                </div>
-            </div>
         </section>
     </div>
 
