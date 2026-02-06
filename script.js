@@ -132,11 +132,51 @@ function calculateNewHcp(playerId) {
 // 7. RITA UT LISTOR
 function updatePlayerDisplay() {
     const list = document.getElementById('players-list');
+    const countBadge = document.getElementById('player-count');
+
     if (!list) return;
+
+    if (countBadge) {
+        countBadge.textContent = `${players.length} spelare`;
+    }
+
+    if (players.length === 0) {
+        list.innerHTML = '<p class="empty-message">Inga spelare tillagda än.</p>';
+        return;
+    }
+
+    // Här bygger vi om korten med bättre styling som syns ordentligt
     list.innerHTML = players.map(p => `
-        <div class="player-card" style="background:white; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #ddd;">
-            <strong>${p.name}</strong> - HCP: ${p.handicap.toFixed(1)}
-            <button onclick="deletePlayer(${p.id})" style="float:right; background:red; color:white; border:none; border-radius:4px;">X</button>
+        <div class="player-card" style="
+            background: white; 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            min-height: 60px;
+        ">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-weight: bold; color: #2d3436; font-size: 1.1em;">${p.name}</span>
+                <span style="color: #636e72; font-size: 0.9em;">
+                    HCP: <strong>${p.handicap.toFixed(1)}</strong> | ID: ${p.golfId}
+                </span>
+            </div>
+            <button onclick="deletePlayer(${p.id})" style="
+                background: #ff7675; 
+                color: white; 
+                border: none; 
+                padding: 8px 12px; 
+                border-radius: 6px; 
+                cursor: pointer;
+                font-weight: bold;
+                transition: background 0.2s;
+            " onmouseover="this.style.background='#d63031'" onmouseout="this.style.background='#ff7675'">
+                Ta bort
+            </button>
         </div>
     `).join('');
 }
